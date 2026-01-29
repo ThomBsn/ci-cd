@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const auth = require('./modules/authentication');
 const {GoogleGenerativeAI} = require("@google/generative-ai");
 require("dotenv").config()
@@ -6,10 +7,12 @@ require("dotenv").config()
 
 const app = express();
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+
 const port = process.env.PORT || 3000;
 
 app.get('/', (req, res) => {
-    res.send('Hello World!');
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.get('/auth/:secret', (req, res) => {
