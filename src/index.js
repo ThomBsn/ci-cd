@@ -1,8 +1,11 @@
 const express = require('express');
 const auth = require('./modules/authentication');
-const {GoogleGenAI} = require("@google/genai");
+const {GoogleGenerativeAI} = require("@google/generative-ai");
+require("dotenv").config()
+
 
 const app = express();
+app.use(express.json());
 const port = process.env.PORT || 3000;
 
 app.get('/', (req, res) => {
@@ -17,27 +20,26 @@ app.get('/auth/:secret', (req, res) => {
 });
 
 app.post("/gemini", async (req, res) => {
-    const ai = new GoogleGenAI({
-        apiKey: process.env.GOOGLE_API_KEY,
-    });
-
     try {
-        const { prompt } = req.body;
+        const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+
+        const {prompt} = req.body;
 
         if (!prompt) {
-            return res.status(400).json({ error: "prompt is required" });
+            return res.status(400).json({error: "prompt is required"});
         }
 
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash-light",
-            contents: prompt,
+        const model = genAI.getGenerativeModel({
+            model: "gemini-2.5-flash",
         });
 
+        const result = await model.generateContent(prompt);
+
         res.json({
-            result: response.text,
+            result: result.response.text(),
         });
     } catch (error) {
-        res.status(500).json({ error: `AI generation failed : ${error}` });
+        res.status(500).json({error: `AI generation failed : ${error.message}`});
     }
 });
 
